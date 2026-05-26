@@ -34,6 +34,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>crop-service</module>
+        <module>buyer-service</module>
     </modules>
 	<dependencyManagement>
 		<dependencies>
