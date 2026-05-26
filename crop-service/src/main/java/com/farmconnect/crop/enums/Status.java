@@ -1,7 +1,7 @@
 package com.farmconnect.crop.enums;
 
 public enum Status {
-    PLANTED,
-    HARVESTED,
-    SOLD
+    AVAILABLE,
+    SOLD,
+    OUT_OF_STOCK
 }
