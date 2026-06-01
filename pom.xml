@@ -37,6 +37,7 @@
         <module>buyer-service</module>
         <module>farmer-service</module>
         <module>eureka-server</module>
+        <module>bidding-service</module>
     </modules>
 	<dependencyManagement>
 		<dependencies>
