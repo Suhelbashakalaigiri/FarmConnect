@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>25</java.version>
+		<java.version>21</java.version>
 		<spring-cloud.version>2025.1.1</spring-cloud.version>
 	</properties>
 
@@ -35,6 +35,8 @@
     <modules>
         <module>crop-service</module>
         <module>buyer-service</module>
+        <module>farmer-service</module>
+        <module>eureka-server</module>
     </modules>
 	<dependencyManagement>
 		<dependencies>
