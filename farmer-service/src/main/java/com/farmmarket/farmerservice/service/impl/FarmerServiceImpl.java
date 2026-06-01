@@ -11,6 +11,8 @@ import com.farmmarket.farmerservice.exception.ResourceNotFoundException;
 import com.farmmarket.farmerservice.mapper.FarmerMapper;
 import com.farmmarket.farmerservice.repository.FarmerRepository;
 import com.farmmarket.farmerservice.service.FarmerService;
+import com.farmmarket.farmerservice.exception.IntegrationException;
+import com.farmmarket.farmerservice.feign.CropServiceClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ public class FarmerServiceImpl implements FarmerService {
 
     private final FarmerRepository farmerRepository;
     private final FarmerMapper farmerMapper;
+    private final CropServiceClient cropServiceClient;
 
     @Override
     @Transactional
@@ -106,26 +109,15 @@ public class FarmerServiceImpl implements FarmerService {
             throw new ResourceNotFoundException("Farmer not found with ID: " + id);
         }
 
-        // Return Mock Data aligned with CropResponse
-        return List.of(
-                new CropSummary(1L, "Premium Basmati Rice", id, 500.0, 65.0, LocalDate.now().minusMonths(1), "rice.jpg", Status.AVAILABLE, "Cereals", LocalDateTime.now(), LocalDateTime.now()),
-                new CropSummary(2L, "Organic Wheat", id, 1200.0, 32.0, LocalDate.now().minusMonths(2), "wheat.jpg", Status.AVAILABLE, "Cereals", LocalDateTime.now(), LocalDateTime.now()),
-                new CropSummary(3L, "Fresh Tomatoes", id, 300.0, 15.0, LocalDate.now().minusDays(5), "tomatoes.jpg", Status.AVAILABLE, "Vegetables", LocalDateTime.now(), LocalDateTime.now())
-        );
+        ApiResponse<List<CropSummary>> response = cropServiceClient.getCropsByFarmerId(id);
+        if (response.success() && response.data() != null) {
+            return response.data();
+        }
+        return List.of();
     }
 
     @Override
     public List<OrderSummary> getFarmerOrdersSummary(Long id) {
-        // Verify farmer exists
-        if (!farmerRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Farmer not found with ID: " + id);
-        }
-
-        // Return Mock Data
-        return List.of(
-                new OrderSummary(501L, "Premium Basmati Rice", 100.0, 6500.0, "Alice Wholesalers", "DELIVERED"),
-                new OrderSummary(502L, "Organic Wheat", 200.0, 6400.0, "City Grain Market", "PENDING"),
-                new OrderSummary(503L, "Fresh Tomatoes", 50.0, 750.0, "Local Veggies Store", "SHIPPED")
-        );
+        throw new IntegrationException("Order Service not implemented yet.");
     }
 }

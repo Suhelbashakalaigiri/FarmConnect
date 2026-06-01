@@ -1,14 +1,19 @@
 package com.farmmarket.buyerservice.dto;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record CropResponse(
         Long id,
-        String name,
-        String category,
-        BigDecimal pricePerKg,
-        Double availableQuantity,
-        String farmerName,
-        String location
+        String cropName,
+        Long farmerId,
+        Double quantity,
+        Double price,
+        LocalDate harvestDate,
+        String imageUrl,
+        String status,
+        String categoryName,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
 }

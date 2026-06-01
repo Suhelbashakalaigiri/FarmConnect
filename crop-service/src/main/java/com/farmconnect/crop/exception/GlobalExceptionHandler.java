@@ -35,6 +35,24 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(BusinessValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBusinessValidationException(BusinessValidationException ex) {
+        ApiResponse<Void> response = ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleServiceUnavailableException(ServiceUnavailableException ex) {
+        ApiResponse<Void> response = ApiResponse.error(ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE.value());
+        return new ResponseEntity<>(response, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler({ExternalServiceException.class, IntegrationException.class})
+    public ResponseEntity<ApiResponse<Void>> handleIntegrationExceptions(RuntimeException ex) {
+        ApiResponse<Void> response = ApiResponse.error(ex.getMessage(), HttpStatus.BAD_GATEWAY.value());
+        return new ResponseEntity<>(response, HttpStatus.BAD_GATEWAY);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
         ApiResponse<Void> response = ApiResponse.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());

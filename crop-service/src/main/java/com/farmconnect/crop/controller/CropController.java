@@ -56,6 +56,12 @@ public class CropController {
         List<CropResponse> response = cropService.getAllCrops();
         return ApiResponse.success("All crops fetched successfully", HttpStatus.OK.value(), response);
     }
+    @GetMapping("/farmer/{farmerId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<List<CropResponse>> getCropsByFarmerId(@PathVariable Long farmerId){
+        List<CropResponse> response = cropService.getCropsByFarmerId(farmerId);
+        return ApiResponse.success("Farmer crops fetched successfully", HttpStatus.OK.value(), response);
+    }
     @PutMapping(value = "/uploadimage/{cropId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<CropResponse> uploadCropImage(@PathVariable Long cropId, @RequestParam MultipartFile file){
