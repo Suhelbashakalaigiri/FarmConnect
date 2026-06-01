@@ -1,6 +1,5 @@
 package com.farmmarket.farmerservice.dto;
 
-import com.farmmarket.farmerservice.enums.Status;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -12,7 +11,7 @@ public record CropSummary(
     Double price,
     LocalDate harvestDate,
     String imageUrl,
-    Status status,
+    String status,
     String categoryName,
     LocalDateTime createdAt,
     LocalDateTime updatedAt

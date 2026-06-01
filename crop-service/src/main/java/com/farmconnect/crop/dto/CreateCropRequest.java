@@ -22,6 +22,8 @@ public record CreateCropRequest(
         @NotNull(message="Status is required")
         Status status,
         @NotNull(message="category name is required")
-        String categoryName
+        String categoryName,
+        @NotNull(message="Farmer ID is required")
+        Long farmerId
 ) {
 }

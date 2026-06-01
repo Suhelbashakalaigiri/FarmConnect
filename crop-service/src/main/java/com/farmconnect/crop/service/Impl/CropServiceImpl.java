@@ -22,42 +22,84 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
+import com.farmconnect.crop.dto.ApiResponse;
+import com.farmconnect.crop.dto.CreateCropRequest;
+import com.farmconnect.crop.dto.CropResponse;
+import com.farmconnect.crop.dto.ExternalFarmerResponse;
+import com.farmconnect.crop.entity.Category;
+import com.farmconnect.crop.entity.Crop;
+import com.farmconnect.crop.exception.BusinessValidationException;
+import com.farmconnect.crop.exception.ResourceAlreadyExistsException;
+import com.farmconnect.crop.exception.ResourceNotFoundException;
+import com.farmconnect.crop.feign.FarmerServiceClient;
+import com.farmconnect.crop.mapper.CropMapper;
+import com.farmconnect.crop.repository.CategoryRepository;
+import com.farmconnect.crop.repository.CropRepository;
+import com.farmconnect.crop.service.CropService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+...
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CropServiceImpl implements CropService {
 
     private static final String UPLOAD_DIR = "uploads/products/";
     private final CropMapper cropMapper;
     private final CropRepository cropRepository;
     private final CategoryRepository categoryRepository;
-
-
+    private final FarmerServiceClient farmerServiceClient;
 
     @Transactional
     @Override
     public CropResponse addCrop(CreateCropRequest crop) {
+        // 1. Validate Category
+        Category category = categoryRepository.findByCategoryNameIgnoreCase(crop.categoryName())
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found: " + crop.categoryName()));
 
-        if(!categoryRepository.existsByCategoryNameIgnoreCase(crop.categoryName())){
-            throw new ResourceNotFoundException("Category Not Found");
+        // 2. Validate Farmer via Farmer Service
+        log.info("Validating farmerId: {} via Farmer Service", crop.farmerId());
+        ApiResponse<ExternalFarmerResponse> farmerResponse = farmerServiceClient.getFarmerById(crop.farmerId());
+
+        if (!farmerResponse.success() || farmerResponse.data() == null) {
+            throw new ResourceNotFoundException("Farmer not found with ID: " + crop.farmerId());
         }
-        Long categoryId = categoryRepository.findByCategoryNameIgnoreCase(crop.categoryName()).get().getId();
-        Long farmerId = 1L;
+
+        ExternalFarmerResponse farmer = farmerResponse.data();
+        if (!"ACTIVE".equalsIgnoreCase(farmer.status())) {
+            throw new BusinessValidationException("Farmer is not ACTIVE. Status: " + farmer.status());
+        }
+        if (!"VERIFIED".equalsIgnoreCase(farmer.verificationStatus())) {
+            throw new BusinessValidationException("Farmer is not VERIFIED. Verification Status: " + farmer.verificationStatus());
+        }
+
         if(cropRepository.existsByCropNameIgnoreCase(crop.cropName())){
-            throw new ResourceAlreadyExistsException("Crop Already Exists");
+            throw new ResourceAlreadyExistsException("Crop Already Exists with name: " + crop.cropName());
         }
+
         Crop newCrop = cropMapper.toEntity(crop);
-        newCrop.setCategory(categoryRepository.findById(categoryId).get());
-        newCrop.setFarmerId(farmerId);
+        newCrop.setCategory(category);
+        newCrop.setFarmerId(crop.farmerId());
         newCrop.setCreatedAt(LocalDateTime.now());
+
         return cropMapper.toDto(cropRepository.save(newCrop));
     }
-
-    @Transactional
+...
     @Override
-    public CropResponse updateCrop(Long cropId, CreateCropRequest request) {
+    public List<CropResponse> getAllCrops() {
+        return cropRepository.findAll().stream().map(cropMapper::toDto).toList();
+    }
 
-        // Fetch existing crop
+    @Override
+    public List<CropResponse> getCropsByFarmerId(Long farmerId) {
+        return cropRepository.findByFarmerId(farmerId).stream()
+                .map(cropMapper::toDto)
+                .toList();
+    }
+...
         Crop existingCrop = cropRepository.findById(cropId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
