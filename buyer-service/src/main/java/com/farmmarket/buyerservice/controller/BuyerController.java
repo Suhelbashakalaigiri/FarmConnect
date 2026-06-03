@@ -17,7 +17,7 @@ public class BuyerController {
 
     private final BuyerService buyerService;
 
-    // --- Buyer Profile APIs ---
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<BuyerResponse>> registerBuyer(@Valid @RequestBody BuyerRequest request) {
@@ -49,7 +49,7 @@ public class BuyerController {
         return ResponseEntity.ok(ApiResponse.success("Buyer deleted successfully", HttpStatus.OK.value(), null));
     }
 
-    // --- Mock Crop Browsing APIs ---
+
 
     @GetMapping("/crops")
     public ResponseEntity<ApiResponse<List<CropResponse>>> browseCrops() {
@@ -63,7 +63,7 @@ public class BuyerController {
         return ResponseEntity.ok(ApiResponse.success("Crop details fetched successfully", HttpStatus.OK.value(), response));
     }
 
-    // --- Mock Bid APIs ---
+
 
     @PostMapping("/bids")
     public ResponseEntity<ApiResponse<String>> placeBid(@Valid @RequestBody BidRequest request) {
@@ -71,7 +71,6 @@ public class BuyerController {
         return ResponseEntity.ok(ApiResponse.success(message, HttpStatus.OK.value(), null));
     }
 
-    // --- Mock Order APIs ---
 
     @PostMapping("/orders")
     public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(@Valid @RequestBody OrderRequest request) {
@@ -79,7 +78,7 @@ public class BuyerController {
         return ResponseEntity.ok(ApiResponse.success("Order placed successfully", HttpStatus.OK.value(), response));
     }
 
-    // --- Mock Delivery APIs ---
+
 
     @GetMapping("/deliveries/{orderId}")
     public ResponseEntity<ApiResponse<DeliveryResponse>> trackDelivery(@PathVariable String orderId) {
@@ -87,7 +86,7 @@ public class BuyerController {
         return ResponseEntity.ok(ApiResponse.success("Delivery status fetched successfully", HttpStatus.OK.value(), response));
     }
 
-    // --- Mock Transaction APIs ---
+
 
     @GetMapping("/transactions")
     public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactionHistory() {
