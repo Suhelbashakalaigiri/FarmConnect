@@ -11,7 +11,6 @@ public interface BuyerService {
     BuyerResponse updateBuyer(Long buyerId, BuyerRequest request);
     void deleteBuyer(Long buyerId);
 
-    // Mock Methods
     List<CropResponse> browseCrops();
     CropResponse getCropById(Long cropId);
     String placeBid(BidRequest request);
