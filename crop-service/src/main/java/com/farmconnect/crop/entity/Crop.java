@@ -1,5 +1,6 @@
 package com.farmconnect.crop.entity;
 
+import com.farmconnect.crop.enums.CropQuality;
 import com.farmconnect.crop.enums.Status;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -42,6 +43,10 @@ public class Crop {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CropQuality cropQuality;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

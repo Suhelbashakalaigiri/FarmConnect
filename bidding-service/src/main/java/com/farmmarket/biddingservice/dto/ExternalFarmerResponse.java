@@ -25,6 +25,7 @@ public record ExternalFarmerResponse(
     String profileImageUrl,
     String status,
     String verificationStatus,
+    String availabilityStatus,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {}

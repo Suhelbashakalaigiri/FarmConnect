@@ -2,6 +2,7 @@ package com.farmmarket.farmerservice.service.impl;
 
 import com.farmmarket.farmerservice.dto.*;
 import com.farmmarket.farmerservice.entity.Farmer;
+import com.farmmarket.farmerservice.enums.FarmerAvailabilityStatus;
 import com.farmmarket.farmerservice.enums.FarmerStatus;
 import com.farmmarket.farmerservice.enums.Status;
 import com.farmmarket.farmerservice.enums.VerificationStatus;
@@ -53,6 +54,7 @@ public class FarmerServiceImpl implements FarmerService {
         Farmer farmer = farmerMapper.toEntity(request);
         farmer.setStatus(FarmerStatus.ACTIVE);
         farmer.setVerificationStatus(VerificationStatus.PENDING);
+        farmer.setAvailabilityStatus(FarmerAvailabilityStatus.AVAILABLE);
 
         Farmer savedFarmer = farmerRepository.save(farmer);
         return farmerMapper.toResponse(savedFarmer);
@@ -119,5 +121,14 @@ public class FarmerServiceImpl implements FarmerService {
     @Override
     public List<OrderSummary> getFarmerOrdersSummary(Long id) {
         throw new IntegrationException("Order Service not implemented yet.");
+    }
+
+    @Override
+    @Transactional
+    public FarmerResponse updateAvailability(Long id, FarmerAvailabilityStatus status) {
+        Farmer farmer = farmerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Farmer not found with ID: " + id));
+        farmer.setAvailabilityStatus(status);
+        return farmerMapper.toResponse(farmerRepository.save(farmer));
     }
 }

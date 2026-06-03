@@ -69,4 +69,11 @@ public class CropController {
         return ApiResponse.success("Image uploaded successfully", HttpStatus.OK.value(), response);
     }
 
+    @PutMapping("/{cropId}/reduce-quantity")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<CropResponse> reduceQuantity(@PathVariable Long cropId, @RequestParam Double quantity) {
+        CropResponse response = cropService.reduceQuantity(cropId, quantity);
+        return ApiResponse.success("Crop quantity reduced successfully", HttpStatus.OK.value(), response);
+    }
+
 }

@@ -5,5 +5,8 @@ public enum BidStatus {
     OUTBID,
     ACCEPTED,
     REJECTED,
-    WITHDRAWN
+    WITHDRAWN,
+    VISIT_PENDING,
+    INSPECTION_APPROVED,
+    ORDER_CREATED
 }

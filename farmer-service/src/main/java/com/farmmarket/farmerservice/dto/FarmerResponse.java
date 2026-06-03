@@ -26,6 +26,7 @@ public record FarmerResponse(
     String profileImageUrl,
     FarmerStatus status,
     VerificationStatus verificationStatus,
+    FarmerAvailabilityStatus availabilityStatus,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {}

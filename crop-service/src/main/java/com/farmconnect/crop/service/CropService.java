@@ -16,4 +16,5 @@ public interface CropService {
     public List<CropResponse> getAllCrops();
     public List<CropResponse> getCropsByFarmerId(Long farmerId);
     public CropResponse uploadCropImage(Long cropId, MultipartFile file);
+    public CropResponse reduceQuantity(Long cropId, Double quantity);
 }
