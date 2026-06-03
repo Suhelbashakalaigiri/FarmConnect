@@ -2,6 +2,7 @@ package com.farmconnect.visitservice.service.impl;
 
 import com.farmconnect.visitservice.dto.*;
 import com.farmconnect.visitservice.entity.Visit;
+import com.farmconnect.visitservice.enums.BidStatus;
 import com.farmconnect.visitservice.enums.InspectionStatus;
 import com.farmconnect.visitservice.enums.VisitStatus;
 import com.farmconnect.visitservice.exception.*;
@@ -150,6 +151,7 @@ public class VisitServiceImpl implements VisitService {
         }
 
         visit.setInspectionStatus(InspectionStatus.APPROVED);
+        bidServiceClient.updateBidStatus(visit.getBidId(), BidStatus.INSPECTION_APPROVED);
         visit.setVisitStatus(VisitStatus.COMPLETED);
         visit.setBuyerRemarks(request.remarks());
         visit.setApprovedAt(LocalDateTime.now());

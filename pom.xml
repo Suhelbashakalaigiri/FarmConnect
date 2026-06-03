@@ -39,6 +39,7 @@
         <module>eureka-server</module>
         <module>bidding-service</module>
         <module>visit-service</module>
+        <module>order-service</module>
     </modules>
 	<dependencyManagement>
 		<dependencies>
