@@ -40,6 +40,7 @@
         <module>bidding-service</module>
         <module>visit-service</module>
         <module>order-service</module>
+        <module>logistics-service</module>
     </modules>
 	<dependencyManagement>
 		<dependencies>
