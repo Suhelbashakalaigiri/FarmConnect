@@ -1,6 +1,7 @@
 package com.farmmarket.biddingservice.controller;
 
 import com.farmmarket.biddingservice.dto.*;
+import com.farmmarket.biddingservice.enums.BidStatus;
 import com.farmmarket.biddingservice.service.BidService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -69,5 +70,10 @@ public class BidController {
     public ResponseEntity<ApiResponse<BidResponse>> withdrawBid(@PathVariable Long id) {
         BidResponse response = bidService.withdrawBid(id);
         return ResponseEntity.ok(ApiResponse.success("Bid withdrawn successfully", HttpStatus.OK.value(), response));
+    }
+
+    @PutMapping("/updatestatus/{id}")
+    Boolean updateBidStatus(@PathVariable Long id, @RequestBody BidStatus bidStatus){
+        return  bidService.updateBidStatus(id,bidStatus);
     }
 }

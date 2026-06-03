@@ -209,4 +209,13 @@ public class BidServiceImpl implements BidService {
         bid.setBidStatus(BidStatus.WITHDRAWN);
         return bidMapper.toResponse(bidRepository.save(bid));
     }
+
+    @Transactional
+    @Override
+    public Boolean updateBidStatus(Long id, BidStatus bidStatus) {
+        Bid bid = bidRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Bid not found with ID: " + id));
+        bid.setBidStatus(bidStatus);
+        return true;
+    }
 }
