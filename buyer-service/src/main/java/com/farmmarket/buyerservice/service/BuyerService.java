@@ -15,6 +15,10 @@ public interface BuyerService {
     CropResponse getCropById(Long cropId);
     String placeBid(BidRequest request);
     OrderResponse placeOrder(OrderRequest request);
+
+    String approveVisit(Long visitId);
+    String rejectVisit(Long visitId);
+
     DeliveryResponse trackDelivery(String orderId);
     List<TransactionResponse> getTransactionHistory();
 }

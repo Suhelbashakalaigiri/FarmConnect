@@ -12,6 +12,7 @@ public record ExternalCropResponse(
         LocalDate harvestDate,
         String imageUrl,
         String status,
+        String cropQuality,
         String categoryName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

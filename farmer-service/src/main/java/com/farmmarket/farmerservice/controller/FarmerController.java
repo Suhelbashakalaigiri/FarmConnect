@@ -1,6 +1,7 @@
 package com.farmmarket.farmerservice.controller;
 
 import com.farmmarket.farmerservice.dto.*;
+import com.farmmarket.farmerservice.enums.FarmerAvailabilityStatus;
 import com.farmmarket.farmerservice.service.FarmerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,5 +63,13 @@ public class FarmerController {
     public ResponseEntity<ApiResponse<List<OrderSummary>>> getFarmerOrdersSummary(@PathVariable Long id) {
         List<OrderSummary> response = farmerService.getFarmerOrdersSummary(id);
         return ResponseEntity.ok(ApiResponse.success("Farmer orders summary retrieved successfully", HttpStatus.OK.value(), response));
+    }
+
+    @PutMapping("/{id}/availability")
+    public ResponseEntity<ApiResponse<FarmerResponse>> updateAvailability(
+            @PathVariable Long id,
+            @RequestParam FarmerAvailabilityStatus status) {
+        FarmerResponse response = farmerService.updateAvailability(id, status);
+        return ResponseEntity.ok(ApiResponse.success("Farmer availability updated successfully", HttpStatus.OK.value(), response));
     }
 }

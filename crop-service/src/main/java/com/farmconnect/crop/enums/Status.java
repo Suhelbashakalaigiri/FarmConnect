@@ -3,5 +3,6 @@ package com.farmconnect.crop.enums;
 public enum Status {
     AVAILABLE,
     SOLD,
-    OUT_OF_STOCK
+    OUT_OF_STOCK,
+    SOLD_OUT
 }

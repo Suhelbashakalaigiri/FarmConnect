@@ -9,8 +9,10 @@ import com.farmmarket.buyerservice.mapper.BuyerMapper;
 import com.farmmarket.buyerservice.repository.BuyerRepository;
 import com.farmmarket.buyerservice.service.BuyerService;
 import com.farmmarket.buyerservice.exception.IntegrationException;
+import com.farmmarket.buyerservice.exception.BusinessValidationException;
 import com.farmmarket.buyerservice.feign.BidServiceClient;
 import com.farmmarket.buyerservice.feign.CropServiceClient;
+import com.farmmarket.buyerservice.feign.VisitServiceClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ public class BuyerServiceImpl implements BuyerService {
     private final BuyerMapper buyerMapper;
     private final CropServiceClient cropServiceClient;
     private final BidServiceClient bidServiceClient;
+    private final VisitServiceClient visitServiceClient;
 
     @Override
     @Transactional
@@ -117,7 +120,19 @@ public class BuyerServiceImpl implements BuyerService {
 
     @Override
     public OrderResponse placeOrder(OrderRequest request) {
-        throw new IntegrationException("Order Service not implemented yet.");
+        throw new BusinessValidationException("Order can only be created after inspection approval.");
+    }
+
+    @Override
+    public String approveVisit(Long visitId) {
+        ApiResponse<Object> response = visitServiceClient.approveVisit(visitId);
+        return response.message();
+    }
+
+    @Override
+    public String rejectVisit(Long visitId) {
+        ApiResponse<Object> response = visitServiceClient.rejectVisit(visitId);
+        return response.message();
     }
 
     @Override

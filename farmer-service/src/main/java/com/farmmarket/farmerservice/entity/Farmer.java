@@ -91,6 +91,10 @@ public class Farmer {
     @Column(nullable = false)
     private VerificationStatus verificationStatus;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private FarmerAvailabilityStatus availabilityStatus;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

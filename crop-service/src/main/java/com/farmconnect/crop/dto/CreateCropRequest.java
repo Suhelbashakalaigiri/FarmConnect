@@ -1,5 +1,6 @@
 package com.farmconnect.crop.dto;
 
+import com.farmconnect.crop.enums.CropQuality;
 import com.farmconnect.crop.enums.Status;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -21,6 +22,8 @@ public record CreateCropRequest(
         LocalDate harvestDate,
         @NotNull(message="Status is required")
         Status status,
+        @NotNull(message="Crop Quality is required")
+        CropQuality cropQuality,
         @NotNull(message="category name is required")
         String categoryName,
         @NotNull(message="Farmer ID is required")

@@ -6,6 +6,7 @@ import com.farmconnect.crop.dto.CropResponse;
 import com.farmconnect.crop.dto.ExternalFarmerResponse;
 import com.farmconnect.crop.entity.Category;
 import com.farmconnect.crop.entity.Crop;
+import com.farmconnect.crop.enums.Status;
 import com.farmconnect.crop.exception.BusinessValidationException;
 import com.farmconnect.crop.exception.ResourceAlreadyExistsException;
 import com.farmconnect.crop.exception.ResourceNotFoundException;
@@ -69,6 +70,7 @@ public class CropServiceImpl implements CropService {
         Crop newCrop = cropMapper.toEntity(crop);
         newCrop.setCategory(category);
         newCrop.setFarmerId(crop.farmerId());
+        newCrop.setCropQuality(crop.cropQuality());
         newCrop.setCreatedAt(LocalDateTime.now());
 
         return cropMapper.toDto(cropRepository.save(newCrop));
@@ -96,10 +98,30 @@ public class CropServiceImpl implements CropService {
         existingCrop.setPrice(request.price());
         existingCrop.setQuantity(request.quantity());
         existingCrop.setHarvestDate(request.harvestDate());
+        existingCrop.setCropQuality(request.cropQuality());
         existingCrop.setCategory(category);
         existingCrop.setUpdatedAt(LocalDateTime.now());
 
         return cropMapper.toDto(cropRepository.save(existingCrop));
+    }
+
+    @Transactional
+    @Override
+    public CropResponse reduceQuantity(Long cropId, Double quantityToReduce) {
+        Crop crop = cropRepository.findById(cropId)
+                .orElseThrow(() -> new ResourceNotFoundException("Crop not found with ID: " + cropId));
+
+        if (crop.getQuantity() < quantityToReduce) {
+            throw new BusinessValidationException("Insufficient crop quantity. Available: " + crop.getQuantity());
+        }
+
+        crop.setQuantity(crop.getQuantity() - quantityToReduce);
+
+        if (crop.getQuantity() == 0) {
+            crop.setStatus(Status.SOLD_OUT);
+        }
+
+        return cropMapper.toDto(cropRepository.save(crop));
     }
 
     @Override

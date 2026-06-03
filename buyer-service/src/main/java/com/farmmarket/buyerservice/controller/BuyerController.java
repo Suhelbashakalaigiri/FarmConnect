@@ -73,9 +73,22 @@ public class BuyerController {
 
 
     @PostMapping("/orders")
+    @Deprecated
     public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(@Valid @RequestBody OrderRequest request) {
-        OrderResponse response = buyerService.placeOrder(request);
-        return ResponseEntity.ok(ApiResponse.success("Order placed successfully", HttpStatus.OK.value(), response));
+        buyerService.placeOrder(request);
+        return null; // unreachable due to exception in service
+    }
+
+    @PostMapping("/visits/{visitId}/approve")
+    public ResponseEntity<ApiResponse<String>> approveVisit(@PathVariable Long visitId) {
+        String message = buyerService.approveVisit(visitId);
+        return ResponseEntity.ok(ApiResponse.success(message, HttpStatus.OK.value(), null));
+    }
+
+    @PostMapping("/visits/{visitId}/reject")
+    public ResponseEntity<ApiResponse<String>> rejectVisit(@PathVariable Long visitId) {
+        String message = buyerService.rejectVisit(visitId);
+        return ResponseEntity.ok(ApiResponse.success(message, HttpStatus.OK.value(), null));
     }
 
 

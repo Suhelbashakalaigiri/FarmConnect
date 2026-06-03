@@ -7,6 +7,7 @@ import com.farmmarket.biddingservice.exception.*;
 import com.farmmarket.biddingservice.feign.BuyerServiceClient;
 import com.farmmarket.biddingservice.feign.CropServiceClient;
 import com.farmmarket.biddingservice.feign.FarmerServiceClient;
+import com.farmmarket.biddingservice.feign.VisitServiceClient;
 import com.farmmarket.biddingservice.mapper.BidMapper;
 import com.farmmarket.biddingservice.repository.BidRepository;
 import com.farmmarket.biddingservice.service.BidService;
@@ -29,6 +30,7 @@ public class BidServiceImpl implements BidService {
     private final CropServiceClient cropServiceClient;
     private final BuyerServiceClient buyerServiceClient;
     private final FarmerServiceClient farmerServiceClient;
+    private final VisitServiceClient visitServiceClient;
 
     @Override
     @Transactional
@@ -153,7 +155,31 @@ public class BidServiceImpl implements BidService {
             }
         }
 
-        return bidMapper.toResponse(bidRepository.save(bid));
+        Bid savedBid = bidRepository.save(bid);
+
+        // Transition to VISIT_PENDING
+        savedBid.setBidStatus(BidStatus.VISIT_PENDING);
+        bidRepository.save(savedBid);
+
+        // Trigger Visit Service
+        createVisitAfterBidAcceptance(savedBid);
+
+        return bidMapper.toResponse(savedBid);
+    }
+
+    private void createVisitAfterBidAcceptance(Bid bid) {
+        log.info("Creating visit request for bid ID: {}", bid.getId());
+        try {
+            visitServiceClient.createVisitRequest(
+                    bid.getId(),
+                    bid.getFarmerId(),
+                    bid.getBuyerId(),
+                    bid.getCropId()
+            );
+        } catch (Exception e) {
+            log.error("Failed to create visit request in VISIT-SERVICE: {}", e.getMessage());
+            // In a real scenario, we might use a retry mechanism or a message queue
+        }
     }
 
     @Override
