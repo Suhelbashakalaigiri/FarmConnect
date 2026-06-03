@@ -1,7 +1,7 @@
 package com.farmconnect.orderservice.dto;
 
 public record ExternalBuyerResponse(
-    Long id,
+    Long buyerId,
     String fullName,
     String status
 ) {}
