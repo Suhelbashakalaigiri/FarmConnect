@@ -34,6 +34,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), null), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InvalidTrackingTransitionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidTrackingTransition(InvalidTrackingTransitionException ex) {
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), null), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ShipmentNotReadyException.class)
+    public ResponseEntity<ApiResponse<Void>> handleShipmentNotReady(ShipmentNotReadyException ex) {
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), null), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DeliveryNotAllowedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDeliveryNotAllowed(DeliveryNotAllowedException ex) {
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), null), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(VehicleAssignmentException.class)
     public ResponseEntity<ApiResponse<Void>> handleVehicleAssignment(VehicleAssignmentException ex) {
         return new ResponseEntity<>(ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), null), HttpStatus.BAD_REQUEST);

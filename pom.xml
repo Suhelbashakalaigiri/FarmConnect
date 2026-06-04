@@ -41,6 +41,7 @@
         <module>visit-service</module>
         <module>order-service</module>
         <module>logistics-service</module>
+        <module>payment-service</module>
     </modules>
 	<dependencyManagement>
 		<dependencies>

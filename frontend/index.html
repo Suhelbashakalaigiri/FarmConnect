@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmConnect Complete Workflow</title>
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; line-height: 1.6; background-color: #f4f7f6; }
+        .container { max-width: 800px; margin: auto; padding: 30px; border-radius: 15px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
+        .section { margin-bottom: 25px; padding: 15px; border: 1px solid #eee; border-radius: 8px; }
+        .section h3 { margin-top: 0; color: #27ae60; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; width: 100%; }
+        button:hover { background-color: #218838; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #status { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; white-space: pre-wrap; font-family: monospace; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #e2f3f5; color: #0c5460; border: 1px solid #bee5eb; }
+        .step-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .step { flex: 1; text-align: center; padding: 10px; border-bottom: 3px solid #ddd; color: #999; font-weight: bold; }
+        .step.active { border-color: #28a745; color: #28a745; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>FarmConnect Workflow</h2>
+
+    <div class="step-indicator">
+        <div id="step1-tab" class="step active">1. Order</div>
+        <div id="step2-tab" class="step">2. Logistics</div>
+        <div id="step3-tab" class="step">3. Payment</div>
+    </div>
+    
+    <!-- STEP 1: ORDER CREATION -->
+    <div id="step1" class="section">
+        <h3>Step 1: Create Order</h3>
+        <div class="form-grid">
+            <div class="form-group"><label>Buyer ID:</label><input type="number" id="buyerId" value="1"></div>
+            <div class="form-group"><label>Farmer ID:</label><input type="number" id="farmerId" value="1"></div>
+            <div class="form-group"><label>Visit ID:</label><input type="number" id="visitId" value="1"></div>
+            <div class="form-group"><label>Bid ID:</label><input type="number" id="bidId" value="1"></div>
+            <div class="form-group"><label>Crop ID:</label><input type="number" id="cropId" value="1"></div>
+            <div class="form-group"><label>Quantity:</label><input type="number" id="quantity" value="100"></div>
+        </div>
+        <div class="form-group"><label>Remarks:</label><textarea id="orderRemarks">Fresh crop purchase</textarea></div>
+        <button id="btnCreateOrder" onclick="createOrder()">Create Order</button>
+    </div>
+
+    <!-- STEP 2: LOGISTICS FLOW -->
+    <div id="step2" class="section" style="display:none;">
+        <h3>Step 2: Logistics Management</h3>
+        <p><i>Note: Payment is only allowed after vehicle arrives at farm.</i></p>
+        <div class="form-group">
+            <label>Pickup Date (Tomorrow):</label>
+            <input type="datetime-local" id="pickupDate">
+        </div>
+        <button id="btnSchedulePickup" onclick="schedulePickup()">1. Schedule Pickup</button>
+        
+        <div id="assignVehicleSection" style="margin-top:20px; display:none;">
+            <div class="form-grid">
+                <div class="form-group"><label>Driver Name:</label><input type="text" id="driverName" value="John Doe"></div>
+                <div class="form-group"><label>Driver Phone:</label><input type="text" id="driverPhone" value="9876543210"></div>
+                <div class="form-group"><label>Vehicle Number:</label><input type="text" id="vehicleNumber" value="KA-01-EF-1234"></div>
+                <div class="form-group"><label>Vehicle Type:</label><input type="text" id="vehicleType" value="Truck"></div>
+            </div>
+            <button id="btnAssignVehicle" onclick="assignVehicle()">2. Assign Vehicle</button>
+        </div>
+
+        <div id="arrivalSection" style="margin-top:20px; display:none;">
+            <button id="btnMarkArrived" onclick="markArrived()">3. Mark Vehicle Arrived (Triggers Payment Pending)</button>
+        </div>
+    </div>
+
+    <!-- STEP 3: PAYMENT FLOW -->
+    <div id="step3" class="section" style="display:none;">
+        <h3>Step 3: Secure Payment</h3>
+        <p id="paymentInfo">Waiting for logistics completion...</p>
+        <button id="btnPay" onclick="initiatePayment()" disabled>Initiate Razorpay Payment</button>
+    </div>
+
+    <div id="status"></div>
+</div>
+
+<script>
+const ORDER_SERVICE_URL = "http://localhost:8086/api/orders";
+const LOGISTICS_SERVICE_URL = "http://localhost:8087/api/logistics";
+const PAYMENT_SERVICE_URL = "http://localhost:8088/api/payments";
+const RAZORPAY_KEY = "rzp_test_SaCFe54BepiPGe";
+
+// State
+let currentOrderId = null;
+let currentLogisticsId = null;
+let orderData = null;
+
+// Initialize pickup date to tomorrow
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
+document.getElementById('pickupDate').value = tomorrow.toISOString().slice(0, 16);
+
+function logStatus(message, type = 'info') {
+    const statusDiv = document.getElementById('status');
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+    statusDiv.className = type;
+    console.log(`[${type.toUpperCase()}]`, message);
+}
+
+function nextStep(step) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById(`step${step}-tab`).classList.add('active');
+    
+    document.getElementById('step1').style.display = step === 1 ? 'block' : 'none';
+    document.getElementById('step2').style.display = step === 2 ? 'block' : 'none';
+    document.getElementById('step3').style.display = step === 3 ? 'block' : 'none';
+}
+
+async function createOrder() {
+    try {
+        const body = {
+            buyerId: parseInt(document.getElementById('buyerId').value),
+            farmerId: parseInt(document.getElementById('farmerId').value),
+            visitId: parseInt(document.getElementById('visitId').value),
+            bidId: parseInt(document.getElementById('bidId').value),
+            cropId: parseInt(document.getElementById('cropId').value),
+            quantity: parseFloat(document.getElementById('quantity').value),
+            remarks: document.getElementById('orderRemarks').value
+        };
+
+        logStatus("Creating order...", "info");
+        const res = await fetch(ORDER_SERVICE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Order creation failed");
+
+        orderData = result.data;
+        currentOrderId = orderData.id;
+        logStatus(`Order Created! ID: ${currentOrderId}`, "success");
+        
+        // Move to Logistics
+        nextStep(2);
+    } catch (e) {
+        logStatus(e.message, "error");
+    }
+}
+
+async function schedulePickup() {
+    try {
+        const body = {
+            orderId: currentOrderId,
+            pickupDate: document.getElementById('pickupDate').value + ":00",
+            remarks: "Logistics scheduled from frontend"
+        };
+
+        logStatus("Scheduling pickup...", "info");
+        const res = await fetch(LOGISTICS_SERVICE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Scheduling failed");
+
+        currentLogisticsId = result.data.id;
+        logStatus("Pickup scheduled! Assign a vehicle next.", "success");
+        
+        document.getElementById('assignVehicleSection').style.display = 'block';
+        document.getElementById('btnSchedulePickup').disabled = true;
+    } catch (e) {
+        logStatus(e.message, "error");
+    }
+}
+
+async function assignVehicle() {
+    try {
+        const body = {
+            driverName: document.getElementById('driverName').value,
+            driverPhone: document.getElementById('driverPhone').value,
+            vehicleNumber: document.getElementById('vehicleNumber').value,
+            vehicleType: document.getElementById('vehicleType').value
+        };
+
+        logStatus("Assigning vehicle...", "info");
+        const res = await fetch(`${LOGISTICS_SERVICE_URL}/${currentLogisticsId}/assign-vehicle`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Vehicle assignment failed");
+
+        logStatus("Vehicle assigned! Now mark it as arrived at farm.", "success");
+        
+        document.getElementById('arrivalSection').style.display = 'block';
+        document.getElementById('btnAssignVehicle').disabled = true;
+    } catch (e) {
+        logStatus(e.message, "error");
+    }
+}
+
+async function markArrived() {
+    try {
+        logStatus("Marking arrival...", "info");
+        const res = await fetch(`${LOGISTICS_SERVICE_URL}/${currentLogisticsId}/arrived`, {
+            method: "PUT"
+        });
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Arrival marking failed");
+
+        logStatus("Vehicle arrived! Logistics status is now PAYMENT_PENDING.", "success");
+        
+        // Enable Payment Step
+        document.getElementById('paymentInfo').textContent = `Order #${currentOrderId} is ready for payment of ₹${orderData.totalAmount}`;
+        document.getElementById('btnPay').disabled = false;
+        nextStep(3);
+    } catch (e) {
+        logStatus(e.message, "error");
+    }
+}
+
+async function initiatePayment() {
+    try {
+        logStatus("Initiating payment gateway...", "info");
+        const res = await fetch(`${PAYMENT_SERVICE_URL}/initiate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                orderId: orderData.id,
+                buyerId: orderData.buyerId,
+                farmerId: orderData.farmerId,
+                amount: orderData.totalAmount,
+                currency: "INR"
+            })
+        });
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Payment initiation failed");
+
+        const paymentData = result.data;
+
+        const options = {
+            key: RAZORPAY_KEY,
+            amount: paymentData.amount * 100,
+            currency: paymentData.currency,
+            name: "FarmConnect",
+            description: "Order Payment",
+            order_id: paymentData.razorpayOrderId,
+            handler: async function (response) {
+                logStatus("Verifying payment...", "info");
+                const vRes = await fetch(`${PAYMENT_SERVICE_URL}/verify`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        paymentId: paymentData.id,
+                        razorpayOrderId: response.razorpay_order_id,
+                        razorpayPaymentId: response.razorpay_payment_id,
+                        razorpaySignature: response.razorpay_signature
+                    })
+                });
+
+                const vResult = await vRes.json();
+                if (!vRes.ok) throw new Error(vResult.message || "Verification failed");
+
+                logStatus("✅ SUCCESS! Payment Verified and Order Confirmed.", "success");
+            },
+            prefill: { name: "Buyer " + orderData.buyerId },
+            theme: { color: "#28a745" }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    } catch (e) {
+        logStatus(e.message, "error");
+    }
+}
+</script>
+
+</body>
+</html>

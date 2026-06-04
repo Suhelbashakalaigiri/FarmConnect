@@ -1,0 +1,36 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: PAYMENT-SERVICE
+  datasource:
+    url: jdbc:mysql://localhost:3306/payment_service_db?createDatabaseIfNotExist=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_SaCFe54BepiPGe}
+  key-secret: ${RAZORPAY_KEY_SECRET:hiRi6uXEfHkdUhpGgVJ8tE0M}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
