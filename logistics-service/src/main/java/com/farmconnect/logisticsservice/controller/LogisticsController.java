@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/logistics")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://127.0.0.1:5500")
 public class LogisticsController {
 
     private final LogisticsService logisticsService;
@@ -69,5 +70,35 @@ public class LogisticsController {
     public ResponseEntity<ApiResponse<LogisticsResponse>> cancelLogistics(@PathVariable Long id) {
         LogisticsResponse response = logisticsService.cancelLogistics(id);
         return ResponseEntity.ok(ApiResponse.success("Logistics cancelled successfully", HttpStatus.OK.value(), response));
+    }
+
+    @PutMapping("/{id}/start-loading")
+    public ResponseEntity<ApiResponse<LogisticsResponse>> startLoading(@PathVariable Long id) {
+        LogisticsResponse response = logisticsService.startLoading(id);
+        return ResponseEntity.ok(ApiResponse.success("Loading started", HttpStatus.OK.value(), response));
+    }
+
+    @PutMapping("/{id}/loaded")
+    public ResponseEntity<ApiResponse<LogisticsResponse>> markLoaded(@PathVariable Long id) {
+        LogisticsResponse response = logisticsService.markLoaded(id);
+        return ResponseEntity.ok(ApiResponse.success("Vehicle loaded", HttpStatus.OK.value(), response));
+    }
+
+    @PutMapping("/{id}/ship")
+    public ResponseEntity<ApiResponse<LogisticsResponse>> markShipped(@PathVariable Long id) {
+        LogisticsResponse response = logisticsService.markShipped(id);
+        return ResponseEntity.ok(ApiResponse.success("Shipment dispatched", HttpStatus.OK.value(), response));
+    }
+
+    @PutMapping("/{id}/in-transit")
+    public ResponseEntity<ApiResponse<LogisticsResponse>> markInTransit(@PathVariable Long id) {
+        LogisticsResponse response = logisticsService.markInTransit(id);
+        return ResponseEntity.ok(ApiResponse.success("Shipment in transit", HttpStatus.OK.value(), response));
+    }
+
+    @PutMapping("/{id}/delivered")
+    public ResponseEntity<ApiResponse<LogisticsResponse>> markDelivered(@PathVariable Long id) {
+        LogisticsResponse response = logisticsService.markDelivered(id);
+        return ResponseEntity.ok(ApiResponse.success("Shipment delivered", HttpStatus.OK.value(), response));
     }
 }

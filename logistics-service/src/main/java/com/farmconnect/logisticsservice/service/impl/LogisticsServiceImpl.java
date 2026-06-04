@@ -166,30 +166,119 @@ public class LogisticsServiceImpl implements LogisticsService {
         }
 
         logistics.setTrackingStatus(TrackingStatus.CANCELLED);
+        updateExternalOrderStatus(logistics.getOrderId(), "CANCELLED", "Logistics cancelled.");
         return logisticsMapper.toResponse(logisticsRepository.save(logistics));
+    }
+
+    @Override
+    @Transactional
+    public LogisticsResponse startLoading(Long id) {
+        return updateTracking(id, TrackingStatus.LOADING_STARTED, "Loading started at farm.");
+    }
+
+    @Override
+    @Transactional
+    public LogisticsResponse markLoaded(Long id) {
+        return updateTracking(id, TrackingStatus.LOADED, "Vehicle loaded successfully.");
+    }
+
+    @Override
+    @Transactional
+    public LogisticsResponse markShipped(Long id) {
+        Logistics logistics = logisticsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Logistics record not found with ID: " + id));
+        
+        validateStatusTransition(logistics.getTrackingStatus(), TrackingStatus.SHIPPED);
+        
+        logistics.setTrackingStatus(TrackingStatus.SHIPPED);
+        logistics.setShipmentDate(LocalDateTime.now());
+        logistics.setRemarks("Shipment dispatched from farm.");
+        
+        Logistics saved = logisticsRepository.save(logistics);
+        updateExternalOrderStatus(saved.getOrderId(), "SHIPPED", saved.getRemarks());
+        
+        return logisticsMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public LogisticsResponse markInTransit(Long id) {
+        return updateTracking(id, TrackingStatus.IN_TRANSIT, "Shipment is in transit.");
+    }
+
+    @Override
+    @Transactional
+    public LogisticsResponse markDelivered(Long id) {
+        Logistics logistics = logisticsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Logistics record not found with ID: " + id));
+        
+        validateStatusTransition(logistics.getTrackingStatus(), TrackingStatus.DELIVERED);
+        
+        logistics.setTrackingStatus(TrackingStatus.DELIVERED);
+        logistics.setDeliveryDate(LocalDateTime.now());
+        logistics.setRemarks("Shipment delivered to buyer.");
+        
+        Logistics saved = logisticsRepository.save(logistics);
+        updateExternalOrderStatus(saved.getOrderId(), "DELIVERED", saved.getRemarks());
+        
+        return logisticsMapper.toResponse(saved);
+    }
+
+    private LogisticsResponse updateTracking(Long id, TrackingStatus nextStatus, String remarks) {
+        Logistics logistics = logisticsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Logistics record not found with ID: " + id));
+
+        validateStatusTransition(logistics.getTrackingStatus(), nextStatus);
+
+        logistics.setTrackingStatus(nextStatus);
+        logistics.setRemarks(remarks);
+
+        Logistics saved = logisticsRepository.save(logistics);
+        updateExternalOrderStatus(saved.getOrderId(), mapToOrderStatus(nextStatus), remarks);
+
+        return logisticsMapper.toResponse(saved);
     }
 
     private void validateStatusTransition(TrackingStatus current, TrackingStatus next) {
         if (current == TrackingStatus.DELIVERED || current == TrackingStatus.CANCELLED) {
-            throw new InvalidTrackingStateException("Cannot transition from " + current);
+            throw new InvalidTrackingTransitionException("Cannot transition from final status: " + current);
         }
 
-        // Rule 8: Cannot mark SHIPPED before LOADED
-        if (next == TrackingStatus.SHIPPED && current != TrackingStatus.LOADED) {
-            throw new InvalidTrackingStateException("Shipment requires status to be LOADED first.");
-        }
+        boolean isValid = switch (current) {
+            case PICKUP_SCHEDULED -> next == TrackingStatus.VEHICLE_ASSIGNED || next == TrackingStatus.CANCELLED;
+            case VEHICLE_ASSIGNED -> next == TrackingStatus.ARRIVED_AT_FARM || next == TrackingStatus.CANCELLED;
+            case ARRIVED_AT_FARM -> next == TrackingStatus.PAYMENT_PENDING;
+            case PAYMENT_PENDING -> next == TrackingStatus.PAYMENT_COMPLETED || next == TrackingStatus.CANCELLED;
+            case PAYMENT_COMPLETED -> next == TrackingStatus.LOADING_STARTED;
+            case LOADING_STARTED -> next == TrackingStatus.LOADED;
+            case LOADED -> next == TrackingStatus.SHIPPED;
+            case SHIPPED -> next == TrackingStatus.IN_TRANSIT;
+            case IN_TRANSIT -> next == TrackingStatus.DELIVERED;
+            default -> false;
+        };
 
-        // Rule 9: Cannot mark DELIVERED before SHIPPED (or IN_TRANSIT)
-        if (next == TrackingStatus.DELIVERED && (current != TrackingStatus.SHIPPED && current != TrackingStatus.IN_TRANSIT)) {
-            throw new InvalidTrackingStateException("Delivery requires status to be SHIPPED or IN_TRANSIT first.");
+        if (!isValid) {
+            throw new InvalidTrackingTransitionException("Invalid status transition: " + current + " -> " + next);
         }
+    }
+
+    private String mapToOrderStatus(TrackingStatus status) {
+        return switch (status) {
+            case PAYMENT_COMPLETED -> "PAYMENT_COMPLETED";
+            case LOADING_STARTED -> "LOADING_PENDING";
+            case LOADED -> "LOADED";
+            case SHIPPED, IN_TRANSIT -> "SHIPPED";
+            case DELIVERED -> "DELIVERED";
+            case CANCELLED -> "CANCELLED";
+            default -> status.name();
+        };
     }
 
     private void updateExternalOrderStatus(Long orderId, String status, String remarks) {
         try {
             orderServiceClient.updateOrderStatus(orderId, new OrderStatusUpdateRequest(status, remarks));
         } catch (Exception e) {
-            log.error("Failed to update Order Service status: {}", e.getMessage());
+            log.error("Failed to update Order Service status for order {}: {}", orderId, e.getMessage());
         }
     }
 }

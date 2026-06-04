@@ -14,4 +14,14 @@ public interface LogisticsService {
     LogisticsResponse getLogisticsById(Long id);
     List<LogisticsResponse> getAllLogistics();
     LogisticsResponse cancelLogistics(Long id);
+
+    LogisticsResponse startLoading(Long id);
+
+    LogisticsResponse markLoaded(Long id);
+
+    LogisticsResponse markShipped(Long id);
+
+    LogisticsResponse markInTransit(Long id);
+
+    LogisticsResponse markDelivered(Long id);
 }
