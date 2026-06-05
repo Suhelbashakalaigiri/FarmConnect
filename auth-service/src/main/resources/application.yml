@@ -1,11 +1,11 @@
 server:
-  port: 8088
+  port: 8089
 
 spring:
   application:
-    name: PAYMENT-SERVICE
+    name: AUTH-SERVICE
   datasource:
-    url: jdbc:mysql://localhost:3306/farmconnect_payment_db?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/farmconnect_auth_db?createDatabaseIfNotExist=true
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -25,12 +25,12 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
 
-razorpay:
-  key-id: ${RAZORPAY_KEY_ID:rzp_test_SaCFe54BepiPGe}
-  key-secret: ${RAZORPAY_KEY_SECRET:hiRi6uXEfHkdUhpGgVJ8tE0M}
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 3600000 # 1 hour
+  refresh-expiration: 604800000 # 7 days
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
+logging:
+  level:
+    com.farmconnect.authservice: DEBUG
+    org.springframework.security: INFO

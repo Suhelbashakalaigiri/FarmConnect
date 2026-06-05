@@ -5,7 +5,9 @@ import com.farmmarket.buyerservice.dto.*;
 import java.util.List;
 
 public interface BuyerService {
-    BuyerResponse registerBuyer(BuyerRequest request);
+    BuyerResponse createInternalProfile(CreateBuyerProfileRequest request);
+    BuyerResponse completeProfile(Long buyerId, BuyerProfileUpdateRequest request);
+    
     List<BuyerResponse> getAllBuyers();
     BuyerResponse getBuyerById(Long buyerId);
     BuyerResponse updateBuyer(Long buyerId, BuyerRequest request);

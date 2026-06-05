@@ -6,7 +6,7 @@ import com.farmmarket.buyerservice.enums.BuyerType;
 import java.time.LocalDateTime;
 
 public record BuyerResponse(
-        Long buyerId,
+        Long id,
         String fullName,
         String email,
         String phoneNumber,
@@ -16,6 +16,7 @@ public record BuyerResponse(
         String district,
         String state,
         String pincode,
+        boolean profileCompleted,
         BuyerType buyerType,
         BuyerStatus status,
         LocalDateTime createdAt,

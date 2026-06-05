@@ -14,7 +14,7 @@ public interface BuyerMapper {
 
     BuyerResponse toResponse(Buyer buyer);
 
-    @Mapping(target = "buyerId", ignore = true)
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

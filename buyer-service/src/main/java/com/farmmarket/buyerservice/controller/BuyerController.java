@@ -13,16 +13,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/buyers")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class BuyerController {
 
     private final BuyerService buyerService;
 
+    @PostMapping("/internal/create-profile")
+    public ResponseEntity<ApiResponse<BuyerResponse>> createInternalProfile(@Valid @RequestBody CreateBuyerProfileRequest request) {
+        BuyerResponse response = buyerService.createInternalProfile(request);
+        return new ResponseEntity<>(ApiResponse.success("Internal buyer profile created", HttpStatus.CREATED.value(), response), HttpStatus.CREATED);
+    }
 
-
-    @PostMapping
-    public ResponseEntity<ApiResponse<BuyerResponse>> registerBuyer(@Valid @RequestBody BuyerRequest request) {
-        BuyerResponse response = buyerService.registerBuyer(request);
-        return new ResponseEntity<>(ApiResponse.success("Buyer registered successfully", HttpStatus.CREATED.value(), response), HttpStatus.CREATED);
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<BuyerResponse>> completeProfile(
+            @RequestParam Long id,
+            @Valid @RequestBody BuyerProfileUpdateRequest request) {
+        BuyerResponse response = buyerService.completeProfile(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", HttpStatus.OK.value(), response));
     }
 
     @GetMapping
@@ -31,21 +38,21 @@ public class BuyerController {
         return ResponseEntity.ok(ApiResponse.success("Buyers fetched successfully", HttpStatus.OK.value(), response));
     }
 
-    @GetMapping("/{buyerId}")
-    public ResponseEntity<ApiResponse<BuyerResponse>> getBuyerById(@PathVariable Long buyerId) {
-        BuyerResponse response = buyerService.getBuyerById(buyerId);
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<BuyerResponse>> getBuyerById(@PathVariable Long id) {
+        BuyerResponse response = buyerService.getBuyerById(id);
         return ResponseEntity.ok(ApiResponse.success("Buyer fetched successfully", HttpStatus.OK.value(), response));
     }
 
-    @PutMapping("/{buyerId}")
-    public ResponseEntity<ApiResponse<BuyerResponse>> updateBuyer(@PathVariable Long buyerId, @Valid @RequestBody BuyerRequest request) {
-        BuyerResponse response = buyerService.updateBuyer(buyerId, request);
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<BuyerResponse>> updateBuyer(@PathVariable Long id, @Valid @RequestBody BuyerRequest request) {
+        BuyerResponse response = buyerService.updateBuyer(id, request);
         return ResponseEntity.ok(ApiResponse.success("Buyer updated successfully", HttpStatus.OK.value(), response));
     }
 
-    @DeleteMapping("/{buyerId}")
-    public ResponseEntity<ApiResponse<String>> deleteBuyer(@PathVariable Long buyerId) {
-        buyerService.deleteBuyer(buyerId);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteBuyer(@PathVariable Long id) {
+        buyerService.deleteBuyer(id);
         return ResponseEntity.ok(ApiResponse.success("Buyer deleted successfully", HttpStatus.OK.value(), null));
     }
 

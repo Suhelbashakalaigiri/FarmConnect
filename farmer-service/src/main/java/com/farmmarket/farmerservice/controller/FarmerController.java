@@ -14,17 +14,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/farmers")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class FarmerController {
 
     private final FarmerService farmerService;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<FarmerResponse>> registerFarmer(@Valid @RequestBody CreateFarmerRequest request) {
-        FarmerResponse response = farmerService.createFarmer(request);
-        return new ResponseEntity<>(
-                ApiResponse.success("Farmer registered successfully", HttpStatus.CREATED.value(), response),
-                HttpStatus.CREATED
-        );
+    @PostMapping("/internal/create-profile")
+    public ResponseEntity<ApiResponse<FarmerResponse>> createInternalProfile(@Valid @RequestBody CreateFarmerProfileRequest request) {
+        FarmerResponse response = farmerService.createInternalProfile(request);
+        return new ResponseEntity<>(ApiResponse.success("Internal farmer profile created", HttpStatus.CREATED.value(), response), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<FarmerResponse>> completeProfile(
+            @RequestParam Long id,
+            @Valid @RequestBody FarmerProfileUpdateRequest request) {
+        FarmerResponse response = farmerService.completeProfile(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", HttpStatus.OK.value(), response));
     }
 
     @GetMapping

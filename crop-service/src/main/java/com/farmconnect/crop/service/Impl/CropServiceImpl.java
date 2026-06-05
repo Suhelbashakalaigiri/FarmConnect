@@ -62,6 +62,9 @@ public class CropServiceImpl implements CropService {
         if (!"VERIFIED".equalsIgnoreCase(farmer.verificationStatus())) {
             throw new BusinessValidationException("Farmer is not VERIFIED. Verification Status: " + farmer.verificationStatus());
         }
+        if (!farmer.profileCompleted()) {
+            throw new BusinessValidationException("You must complete your profile in the Farmer Service before adding crops.");
+        }
 
         if(cropRepository.existsByCropNameIgnoreCase(crop.cropName())){
             throw new ResourceAlreadyExistsException("Crop Already Exists with name: " + crop.cropName());

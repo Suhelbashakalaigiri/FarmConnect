@@ -24,6 +24,7 @@ public record FarmerResponse(
     String bankAccountNumber,
     String ifscCode,
     String profileImageUrl,
+    boolean profileCompleted,
     FarmerStatus status,
     VerificationStatus verificationStatus,
     FarmerAvailabilityStatus availabilityStatus,

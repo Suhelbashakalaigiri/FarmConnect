@@ -25,7 +25,7 @@ public interface FarmerMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "phoneNumber", ignore = true)
-    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "pincode", ignore = true)
     @Mapping(target = "aadhaarNumber", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "verificationStatus", ignore = true)

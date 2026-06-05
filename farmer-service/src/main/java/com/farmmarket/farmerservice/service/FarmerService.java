@@ -6,7 +6,9 @@ import com.farmmarket.farmerservice.enums.FarmerAvailabilityStatus;
 import java.util.List;
 
 public interface FarmerService {
-    FarmerResponse createFarmer(CreateFarmerRequest request);
+    FarmerResponse createInternalProfile(CreateFarmerProfileRequest request);
+    FarmerResponse completeProfile(Long farmerId, FarmerProfileUpdateRequest request);
+
     FarmerResponse getFarmerById(Long id);
     List<FarmerResponse> getAllFarmers();
     FarmerResponse updateFarmer(Long id, UpdateFarmerRequest request);

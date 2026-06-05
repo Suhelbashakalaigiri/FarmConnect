@@ -8,6 +8,7 @@ public record ExternalFarmerResponse(
     String status,
     String verificationStatus,
     String availabilityStatus,
+    boolean profileCompleted,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {}
