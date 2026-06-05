@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 public class Farmer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -33,55 +32,42 @@ public class Farmer {
     @Column(nullable = false, unique = true)
     private String phoneNumber;
 
-    @Column(nullable = false)
-    private String password;
-
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Gender gender;
 
-    @Column(nullable = false)
     private LocalDate dateOfBirth;
 
-    @Column(nullable = false)
     private String addressLine;
 
-    @Column(nullable = false)
     private String village;
 
-    @Column(nullable = false)
     private String mandal;
 
-    @Column(nullable = false)
     private String district;
 
-    @Column(nullable = false)
     private String state;
 
-    @Column(nullable = false, length = 6)
+    @Column(length = 6)
     private String pincode;
 
-    @Column(nullable = false)
     private Double landArea;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private LandUnit landUnit;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private FarmingType farmingType;
 
-    @Column(nullable = false, unique = true, length = 12)
+    @Column(unique = true, length = 12)
     private String aadhaarNumber;
 
-    @Column(nullable = false)
     private String bankAccountNumber;
 
-    @Column(nullable = false)
     private String ifscCode;
 
     private String profileImageUrl;
+
+    private boolean profileCompleted = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -18,8 +18,7 @@ import java.time.LocalDateTime;
 public class Buyer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long buyerId;
+    private Long id;
 
     @Column(nullable = false)
     private String fullName;
@@ -30,28 +29,21 @@ public class Buyer {
     @Column(nullable = false)
     private String phoneNumber;
 
-    @Column(nullable = false)
-    private String password;
-
     private String companyName;
 
-    @Column(nullable = false)
     private String addressLine;
 
-    @Column(nullable = false)
     private String villageCity;
 
-    @Column(nullable = false)
     private String district;
 
-    @Column(nullable = false)
     private String state;
 
-    @Column(nullable = false)
     private String pincode;
 
+    private boolean profileCompleted = false;
+
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private BuyerType buyerType;
 
     @Enumerated(EnumType.STRING)

@@ -15,6 +15,7 @@ import com.farmmarket.farmerservice.service.FarmerService;
 import com.farmmarket.farmerservice.exception.IntegrationException;
 import com.farmmarket.farmerservice.feign.CropServiceClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FarmerServiceImpl implements FarmerService {
 
     private final FarmerRepository farmerRepository;
@@ -34,30 +36,52 @@ public class FarmerServiceImpl implements FarmerService {
 
     @Override
     @Transactional
-    public FarmerResponse createFarmer(CreateFarmerRequest request) {
-        // Business Validations
+    public FarmerResponse createInternalProfile(CreateFarmerProfileRequest request) {
+        log.info("Creating internal farmer profile for ID: {}", request.id());
+        
+        if (farmerRepository.existsById(request.id())) {
+            throw new ResourceAlreadyExistsException("Farmer with ID " + request.id() + " already exists");
+        }
         if (farmerRepository.existsByEmail(request.email())) {
-            throw new ResourceAlreadyExistsException("Email already registered: " + request.email());
-        }
-        if (farmerRepository.existsByPhoneNumber(request.phoneNumber())) {
-            throw new ResourceAlreadyExistsException("Phone number already registered: " + request.phoneNumber());
-        }
-        if (farmerRepository.existsByAadhaarNumber(request.aadhaarNumber())) {
-            throw new ResourceAlreadyExistsException("Aadhaar number already registered: " + request.aadhaarNumber());
+            throw new ResourceAlreadyExistsException("Farmer with email " + request.email() + " already exists");
         }
 
-        // Age Validation (18+)
-        if (Period.between(request.dateOfBirth(), LocalDate.now()).getYears() < 18) {
-            throw new InvalidOperationException("Farmer must be at least 18 years old");
-        }
-
-        Farmer farmer = farmerMapper.toEntity(request);
-        farmer.setStatus(FarmerStatus.ACTIVE);
-        farmer.setVerificationStatus(VerificationStatus.PENDING);
-        farmer.setAvailabilityStatus(FarmerAvailabilityStatus.AVAILABLE);
+        Farmer farmer = Farmer.builder()
+                .id(request.id())
+                .fullName(request.fullName())
+                .email(request.email())
+                .phoneNumber(request.phoneNumber())
+                .status(FarmerStatus.ACTIVE)
+                .verificationStatus(VerificationStatus.PENDING)
+                .availabilityStatus(FarmerAvailabilityStatus.AVAILABLE)
+                .profileCompleted(false)
+                .build();
 
         Farmer savedFarmer = farmerRepository.save(farmer);
         return farmerMapper.toResponse(savedFarmer);
+    }
+
+    @Override
+    @Transactional
+    public FarmerResponse completeProfile(Long farmerId, FarmerProfileUpdateRequest request) {
+        log.info("Completing farmer profile for ID: {}", farmerId);
+        
+        Farmer farmer = farmerRepository.findById(farmerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Farmer not found with ID: " + farmerId));
+
+        farmer.setLandArea(request.landArea());
+        farmer.setLandUnit(request.landUnit());
+        farmer.setFarmingType(request.farmingType());
+        farmer.setAddressLine(request.addressLine());
+        farmer.setVillage(request.village());
+        farmer.setMandal(request.mandal());
+        farmer.setDistrict(request.district());
+        farmer.setState(request.state());
+        farmer.setPincode(request.pincode());
+        farmer.setProfileCompleted(true);
+
+        Farmer updatedFarmer = farmerRepository.save(farmer);
+        return farmerMapper.toResponse(updatedFarmer);
     }
 
     @Override
@@ -85,14 +109,30 @@ public class FarmerServiceImpl implements FarmerService {
             throw new InvalidOperationException("Blocked farmers cannot update their profile");
         }
 
-        // Age Validation for updated DOB
-        if (Period.between(request.dateOfBirth(), LocalDate.now()).getYears() < 18) {
+        // Age Validation for updated DOB (if provided)
+        if (request.dateOfBirth() != null && Period.between(request.dateOfBirth(), LocalDate.now()).getYears() < 18) {
             throw new InvalidOperationException("Farmer must be at least 18 years old");
         }
 
         farmerMapper.updateEntityFromRequest(request, farmer);
+        
+        if (isProfileComplete(farmer)) {
+            farmer.setProfileCompleted(true);
+        }
+        
         Farmer updatedFarmer = farmerRepository.save(farmer);
         return farmerMapper.toResponse(updatedFarmer);
+    }
+
+    private boolean isProfileComplete(Farmer farmer) {
+        return farmer.getLandArea() != null &&
+               farmer.getLandUnit() != null &&
+               farmer.getFarmingType() != null &&
+               farmer.getAddressLine() != null && !farmer.getAddressLine().isBlank() &&
+               farmer.getVillage() != null && !farmer.getVillage().isBlank() &&
+               farmer.getDistrict() != null && !farmer.getDistrict().isBlank() &&
+               farmer.getState() != null && !farmer.getState().isBlank() &&
+               farmer.getPincode() != null && !farmer.getPincode().isBlank();
     }
 
     @Override
